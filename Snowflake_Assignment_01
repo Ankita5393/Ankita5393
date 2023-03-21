@@ -1,0 +1,89 @@
+use database DEMO_01;
+CREATE OR REPLACE TABLE AK_SALES_DATA_FINAL
+(    ORDER_ID Varchar(30),
+     ORDER_DATE date Primary key,
+     SHIP_DATE date,
+     SHIP_MODE VARCHAR2(50),
+     CUSTOMER_NAME VARCHAR(50),
+     SEGMENT Varchar(50),
+     STATE Varchar(40),
+     Country VARCHAR(100),
+     Market CHAR(20),
+     Region string,
+     PRODUCT_ID VARCHAR(40),
+     CATEGORY CHAR(40),
+     SUB_CATEGORY STRING,
+     PRODUCT_NAME STRING,
+     SALES VARCHAR(40),
+     QUANTITY Integer,
+     DISCOUNT float,
+     PROFIT Float,
+     SHIPPING_COST Float,
+     ORDER_PRIORITY Varchar(40),
+     YEAR integer
+);
+
+DESCRIBE TABLE AK_SALES_DATA_FINAL;
+
+select * from AK_SALES_DATA_FINAL LIMIT 100;
+------------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE TABLE AK_SALES_DATA_FINAL_COPY LIKE AK_SALES_DATA_FINAL;
+
+INSERT INTO AK_SALES_DATA_FINAL_COPY SELECT * FROM AK_SALES_DATA_FINAL;
+
+ALTER TABLE AK_SALES_DATA_FINAL_COPY
+DROP PRIMARY KEY;
+
+ALTER TABLE AK_SALES_DATA_FINAL_COPY
+ADD PRIMARY KEY (ORDER_ID);
+
+SELECT * FROM AK_SALES_DATA_FINAL_COPY;
+
+----------Check the data type for Order date and Ship date and mention in what data type it should be?-------------------------
+
+CHANGE THE ORDER_DATE AND SHIP_DATE TO THE DATE FORMAT IN THE CSV FILE ITSELF;
+SELECT * FROM AK_SALES_DATA_FINAL_COPY
+ORDER BY ORDER_DATE, SHIP_DATE;
+
+--------------Create a new column called order_extract and extract the number after the last ‘–‘from Order ID column------------------
+
+ALTER TABLE AK_SALES_DATA_FINAL_COPY ADD COLUMN ORDER_EXTRACT STRING;
+
+UPDATE AK_SALES_DATA_FINAL_COPY
+SET ORDER_EXTRACT= SUBSTR(ORDER_ID,9);
+
+------------Create a new column called Discount Flag and categorize it based on discount. Use ‘Yes’ if the discount is greater than zero else ‘No’-----------------
+
+ALTER TABLE AK_SALES_DATA_FINAL_COPY ADD COLUMN ORDER_EXTRACT STRING;
+
+UPDATE AK_SALES_DATA_FINAL_COPY
+SET DISCOUNT = (CASE
+                          WHEN DISCOUNT > 0 THEN 'YES'
+                          ELSE 'NO'
+                          END);
+
+-------- Create a new column called process days and calculate how many days it takes for each order id to process from the order to its shipment---------------
+
+SELECT * FROM AK_SALES_DATA_FINAL_COPY;
+
+UPDATE AK_SALES_DATA_FINAL_COPY
+SET PROCESS_DAYS= DATEDIFF(DAY,ORDER_DATE,SHIP_DATE);
+
+
+----------Create a new column called Rating and then based on the Process dates give rating like given below--------
+a. If process days less than or equal to 3days then rating should be 5
+b. If process days are greater than 3 and less than or equal to 6 then rating should be 4
+c. If process days are greater than 6 and less than or equal to 10 then rating should be 3
+d. If process days are greater than 10 then the rating should be 2.
+
+ALTER TABLE AK_SALES_DATA_FINAL_COPY ADD COLUMN RATING INT;
+
+UPDATE AK_SALES_DATA_FINAL_COPY
+SET RATING =
+CASE
+
+            WHEN PROCESS_DAYS <= 3 THEN 5
+            WHEN PROCESS_DAYS >3 AND PROCESS_DAYS <=6 THEN 4
+            WHEN PROCESS_DAYS >6 AND PROCESS_DAYS <=10 THEN 3
+            WHEN PROCESS_DAYS >10 THEN 2
+            END;	
